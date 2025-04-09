@@ -10,7 +10,7 @@ TcpClient::~TcpClient() {
     if (sockfd != -1) close(sockfd);
 }
 
-bool TcpClient::connectToServer(const std::string& ip, int port) {
+bool TcpClient::connectToServer(const string& ip, int port) {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (sockfd < 0) {
         perror("Socket creation failed");
@@ -30,11 +30,11 @@ bool TcpClient::connectToServer(const std::string& ip, int port) {
     return true;
 }
 
-bool TcpClient::sendData(const std::string& data) {
+bool TcpClient::sendData(const string& data) {
     return send(sockfd, data.c_str(), data.size(), 0) >= 0;
 }
 
-std::string TcpClient::receiveData() {
+string TcpClient::receiveData() {
     char buffer[1024] = {0};
     int bytesReceived = recv(sockfd, buffer, sizeof(buffer) - 1, 0);
     if (bytesReceived <= 0) return "";

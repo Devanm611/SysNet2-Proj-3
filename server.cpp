@@ -4,18 +4,43 @@
 
 #include "User.cpp"
 
-void login(){
+void create_account(){  //Function to create an account in the server
+
+    std::string new_userId, new_password, new_id, new_pass;
+
+    std::cout << "Creating a new account..." << std::endl;
+    std::cout << "___________________________________" << std::endl;
+    std::cout << "Enter a valid username: ";
+    std::cin >> new_userId;
+    std::cout << "\nEnter a valid password: ";
+    std::cin >> new_password;
+
+    ofstream user_info("user.txt", std::ios::app); //Appends the new user details to the user.txt file
+    if(user_info.is_open()){
+        user_info << new_userId << " " << new_password << std::endl;
+        std::cout << "Account created successfully!" << std::endl;
+        main_menu();
+    } 
+    else{
+        std::cout << "Error creating account. Please try again." << std::endl;
+        main_menu();
+    }
+
+}
+
+void login(){   //Function to login the user to the server
 
     int count;
 
-    std::string userID, password, id, pass;
-    std::cout << "Enter your user ID: ";
-    std::cin >> userID;
-    std::cout << "Enter your password: ";
+    std::string user_ID, password, id, pass;
+    std::cout << "Username: ";
+    std::cin >> user_ID;
+    std::cout << "Password: ";
     std::cin >> password;
 
-    std::ifstream input("user.txt"); //Adds user
-    while (input >> id >> pass){
+    std::ifstream input("user.txt"); //Adds user details to user.txt file
+    
+    while(input >> id >> pass){
         if(id == userID && pass == password){
 
             count = 1;
@@ -25,17 +50,14 @@ void login(){
     }
     input.close();
 
-    if (count == 1) {
-        std::cout << "Login successful! Welcome, " << userID << "!" << std::endl;
-    } else {
+    if(count == 1){
+        std::cout << "Successful Login! Welcome, " << user_ID << "!" << std::endl;
+        main_menu();
+    } 
+    else{
         std::cout << "Login failed. Invalid user ID or password." << std::endl;
+        main_menu();
     }
-
-}
-
-void registration(){
-
-
 
 }
 
@@ -67,7 +89,7 @@ int main(){
 
         case 2:
             std::cout << "Register" << std::endl;
-            registration();
+            create_account();
             break;
         
         case 3:

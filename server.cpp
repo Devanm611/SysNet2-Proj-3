@@ -12,7 +12,7 @@ void create_account(){  //Function to create an account in the server
     std::cout << "___________________________________" << std::endl;
     std::cout << "Enter a valid username: ";
     std::cin >> new_userId;
-    std::cout << "Enter a valid password: ";
+    std::cout << "\nEnter a valid password: ";
     std::cin >> new_password;
 
     ofstream user_info("user.txt", std::ios::app); //Appends the new user details to the user.txt file
@@ -25,6 +25,7 @@ void create_account(){  //Function to create an account in the server
         std::cout << "Error creating account. Please try again." << std::endl;
         main_menu();
     }
+
 }
 
 void login(){   //Function to login the user to the server
@@ -38,6 +39,7 @@ void login(){   //Function to login the user to the server
     std::cin >> password;
 
     std::ifstream input("user.txt"); //Adds user details to user.txt file
+    
     while(input >> id >> pass){
         if(id == userID && pass == password){
 
@@ -50,7 +52,7 @@ void login(){   //Function to login the user to the server
 
     if(count == 1){
         std::cout << "Successful Login! Welcome, " << user_ID << "!" << std::endl;
-        main_menu(); //Displays the main menu 
+        main_menu();
     } 
     else{
         std::cout << "Login failed. Invalid user ID or password." << std::endl;

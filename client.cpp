@@ -7,7 +7,7 @@ bool logged_in = false;
 TcpClient client;
 std::string current_user;
 
-void create_account() {
+void create_account(){
     std::string new_username, new_password;
 
     std::cout << "Creating a new account..." << std::endl;
@@ -23,7 +23,7 @@ void create_account() {
     std::cout << response << std::endl;
 }
 
-void login() {
+void login(){
     while(!logged_in){
         std::string password;
         std::cout << "Username: ";
@@ -49,7 +49,7 @@ void login() {
     }
 }
 
-void change_password() {
+void change_password(){
     std::string oldpass, newpass;
 
     std::cout << "Changing your password..." << std::endl;
@@ -78,7 +78,7 @@ void subscribe_to_location(){
     std::cout << "Enter the location you want to subscribe to: ";
     
     std::string location;
-    std::cin >> location;
+    std::getline(std::cin >> std::ws, location);
 
     if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
         std::string request = "Subscribe " + location;
@@ -104,9 +104,10 @@ void subscribe_to_location(){
 void unsubscribe_from_location(){
     std::cout << "Unsubscribing from a location..." << std::endl;
     std::cout << "___________________________________" << std::endl;
-    std::string location;
     std::cout << "Enter the location you want to unsubscribe from: ";
-    std::cin >> location;
+    
+    std::string location;
+    std::getline(std::cin >> std::ws, location);
 
     if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
         std::string request = "Unsubscribe " + current_user + " " + location;
@@ -128,12 +129,18 @@ void unsubscribe_from_location(){
     std::cout << "___________________________________" << std::endl;
 }
 
-void display_subscriptions() {
-    std::cout << "Displaying subscriptions... [TODO]" << std::endl;
+void display_subscriptions(){
+    std::cout << "Displaying subscriptions..." << std::endl;
+    std::cout << "___________________________________" << std::endl;
+    std::string request = "Subscriptions ";
+    client.sendData(request);
+
+    std::string response = client.receiveData();
+    std::cout << response << std::endl;
 }
 
-int main() {
-    if (!client.connectToServer("127.0.0.1", 8080)) {
+int main(){
+    if(!client.connectToServer("127.0.0.1", 8080)){
         std::cerr << "Unable to connect to server." << std::endl;
         return 1;
     }
@@ -141,7 +148,7 @@ int main() {
     int choice;
     bool running = true;
 
-    while (running) {
+    while(running){
         std::cout << "Welcome to your local weather station!\n";
         std::cout << "Please choose an option:\n";
         std::cout << "\t1. Login" << std::endl;
@@ -151,7 +158,7 @@ int main() {
         std::cin >> choice;
         std::cout << std::endl;
 
-        switch (choice) {
+        switch(choice){
             case 1:
                 std::cout << "--Login--" << std::endl;
                 login();
@@ -208,6 +215,6 @@ int main() {
         }
     }
 
-    std::cout << "Goodbye!\n";
+    std::cout << "See you later!\n";
     return 0;
 }

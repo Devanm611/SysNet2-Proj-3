@@ -17,6 +17,8 @@ std::map<std::string, User> onlineUsers;
 std::mutex userMutex;
 
 void handleClient(int clientSocket) {
+    std::cout << "[+] New client connected: socket " << clientSocket << std::endl;
+
     char buffer[1024];
     std::string username;
 
@@ -24,7 +26,7 @@ void handleClient(int clientSocket) {
         std::memset(buffer, 0, sizeof(buffer));
         ssize_t bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
         if (bytesReceived <= 0) {
-            std::cerr << "Client disconnected or error occurred" << std::endl;
+            std::cerr << "[-] Client disconnected or error occurred on socket " << clientSocket << std::endl;
             break;
         }
 
@@ -33,9 +35,12 @@ void handleClient(int clientSocket) {
         std::string command;
         iss >> command;
 
-        if (command == "Rigester") {
+        std::cout << "[>] Received from client " << clientSocket << ": " << input << std::endl;
+
+        if (command == "Register") {
             std::string uname, pwd;
             iss >> uname >> pwd;
+            std::cout << "[*] Handling registration for user: " << uname << std::endl;
 
             std::lock_guard<std::mutex> lock(userMutex);
             std::ifstream infile("users.txt");
@@ -51,20 +56,24 @@ void handleClient(int clientSocket) {
             }
             infile.close();
 
+            std::string msg;
             if (exists) {
-                std::string msg = "ERROR: Username already exists\n";
-                send(clientSocket, msg.c_str(), msg.size(), 0);
+                msg = "ERROR: Username already exists\n";
+                std::cout << "[-] Registration failed: " << uname << " already exists\n";
             } else {
                 std::ofstream outfile("users.txt", std::ios::app);
                 outfile << uname << " " << pwd << std::endl;
-                std::string msg = "SUCCESS: Account created\n";
-                send(clientSocket, msg.c_str(), msg.size(), 0);
+                msg = "SUCCESS: Account created\n";
+                std::cout << "[+] Registration successful for user: " << uname << std::endl;
             }
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+            std::cout << "[<] Sent to client: " << msg;
         }
 
         else if (command == "Login") {
             std::string uname, pwd;
             iss >> uname >> pwd;
+            std::cout << "[*] Attempting login for user: " << uname << std::endl;
 
             std::lock_guard<std::mutex> lock(userMutex);
             std::ifstream infile("users.txt");
@@ -78,25 +87,30 @@ void handleClient(int clientSocket) {
             }
             infile.close();
 
+            std::string msg;
             if (success) {
                 username = uname;
                 onlineUsers[username] = User(uname, pwd, clientSocket);
-                std::string msg = "SUCCESS: Logged in\n";
-                send(clientSocket, msg.c_str(), msg.size(), 0);
+                msg = "SUCCESS: Logged in\n";
+                std::cout << "[+] Login successful for user: " << uname << std::endl;
             } else {
-                std::string msg = "ERROR: Invalid credentials\n";
-                send(clientSocket, msg.c_str(), msg.size(), 0);
+                msg = "ERROR: Invalid credentials\n";
+                std::cout << "[-] Login failed for user: " << uname << std::endl;
             }
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+            std::cout << "[<] Sent to client: " << msg;
         }
 
         else if (command == "Exit") {
             std::lock_guard<std::mutex> lock(userMutex);
             onlineUsers.erase(username);
+            std::cout << "[-] User " << username << " disconnected and removed from online list.\n";
             break;
         }
     }
 
     close(clientSocket);
+    std::cout << "[x] Closed connection for socket " << clientSocket << std::endl;
 }
 
 int main() {
@@ -115,12 +129,13 @@ int main() {
     bind(server_fd, (struct sockaddr*)&address, sizeof(address));
     listen(server_fd, 10);
 
-    std::cout << "Server running on port 8080..." << std::endl;
+    std::cout << "[✓] Server running on port 8080..." << std::endl;
 
     while (true) {
         new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
+        std::cout << "[*] Accepted new connection on socket " << new_socket << std::endl;
         std::thread t(handleClient, new_socket);
-        t.detach(); // Let threads run independently
+        t.detach();
     }
 
     return 0;

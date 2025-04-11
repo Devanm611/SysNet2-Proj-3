@@ -66,7 +66,7 @@ void forgot_password(){
 int main(){
 
     int choice;
-    bool running = true; //
+    bool running = true; 
 
     while(running){
 
@@ -74,8 +74,7 @@ int main(){
         std::cout << "Please choose an option:\n";
         std::cout << "\t1. Login" << std::endl;
         std::cout << "\t2. Register" << std::endl;
-        std::cout << "\t3. Forgot Password" << std::endl;
-        std::cout << "\t4. Exit" << std::endl;
+        std::cout << "\t3. Exit" << std::endl;
 
         std::cin >> choice;
         std::cout << std::endl;
@@ -93,12 +92,8 @@ int main(){
                 break;
         
             case 3:
-                std::cout << "Forgot Password" << std::endl;
-                forgot_password();
-                break;
-
-            case 4:
-                std::cout << "Exit" << std::endl;
+                std::cout << "Exiting..." << std::endl;
+                running = false;
                 break;
         
             default:

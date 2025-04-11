@@ -103,13 +103,14 @@ void handleClient(int clientSocket) {
 
         else if(command == "Subscribe"){
             std::string location;
-            iss >> location;
+            std::getline(iss >> std::ws, location);
+            
             std::cout << "[*] Handling subscription for user: " << username << " to valid location: " << location << std::endl;
             
             std::lock_guard<std::mutex> lock(userMutex);
             bool success = false;
 
-            //Check if the location is valid
+            //Checks if the location is valid
             if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
                 success = true;
                 onlineUsers[username].subscribeToLocation(location);
@@ -131,6 +132,25 @@ void handleClient(int clientSocket) {
         //else if(command == "Unsubscribe"){
             //std::lock_guard<std::mutex> lock(userMutex);
         //}
+        else if(command == "Subscriptions"){
+
+            std::lock_guard<std::mutex> lock(userMutex);
+            std::vector<std::string> subscriptions = onlineUsers[username].getSubscribedLocations();
+            std::string msg;
+
+            if(subscriptions.empty()){
+                msg = "No subscriptions found.\n";
+            } 
+            else{
+                msg = "Your current subscriptions are:\n";
+                for(const auto& loc : subscriptions){
+                    msg += loc + "\n";
+                }
+            }
+
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+            std::cout << "[<] Sent to client: " << msg;
+        }
 
         else if (command == "Exit") {
             std::lock_guard<std::mutex> lock(userMutex);

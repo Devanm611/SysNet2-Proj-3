@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 
 class User {
 private:
@@ -11,6 +12,7 @@ private:
     int socketNo;
     std::vector<std::string> subscribedLocations;
     std::vector<std::string> receivedMessages;
+    std::set<std::string> subscriptions;
 
 public:
     // Default constructor (required for std::map access)

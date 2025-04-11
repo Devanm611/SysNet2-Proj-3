@@ -17,7 +17,7 @@ void create_account(){  //Function to create an account in the server
     std::cout << "\nEnter a valid password: ";
     std::cin >> new_password;
 
-    ofstream user_info("user.txt", std::ios::app); //Appends the new user details to the user.txt file
+    std::ofstream user_info("user.txt", std::ios::app); //Appends the new user details to the user.txt file
     if(user_info.is_open()){
         user_info << new_username << " " << new_password << std::endl;
         std::cout << "Account created successfully!" << std::endl;

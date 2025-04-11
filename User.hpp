@@ -3,38 +3,38 @@
 
 #include <string>
 #include <vector>
-using namespace std;
 
 class User {
 private:
-    string username;
-    string password;
+    std::string username;
+    std::string password;
     int socketNo;
-    vector<string> subscribedLocations;
-    vector<string> receivedMessages;
+    std::vector<std::string> locations;
+    std::vector<std::string> messages;
 
 public:
+    // Default constructor (required for std::map access)
     User();
-    User(const string& uname, const string& pwd, int sock);
 
-    // Getters
-    string getUsername() const;
-    string getPassword() const;
+    // Constructor with parameters
+    User(const std::string& uname, const std::string& pass, int sock);
+
+    // Setters and Getters
+    std::string getUsername() const;
+    std::string getPassword() const;
     int getSocketNo() const;
-    vector<string> getSubscribedLocations() const;
-    vector<string> getLast10Messages() const;
 
-    // Setters
-    void setPassword(const string& newPassword);
+    void setPassword(const std::string& newPass);
     void setSocketNo(int sock);
 
-    // Location methods
-    void subscribeToLocation(const string& location);
-    void unsubscribeFromLocation(const string& location);
-    bool isSubscribedTo(const string& location) const;
+    // Location management
+    void subscribeLocation(const std::string& loc);
+    void unsubscribeLocation(const std::string& loc);
+    std::vector<std::string> getLocations() const;
 
-    // Message methods
-    void addMessage(const string& message);
+    // Messages
+    void addMessage(const std::string& msg);
+    std::vector<std::string> getMessages() const;
 };
 
 #endif

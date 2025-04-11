@@ -13,6 +13,7 @@ private:
     std::vector<std::string> receivedMessages;
 
 public:
+    // Default constructor (required for std::map access)
     User();
     User(const std::string& uname, const std::string& pwd, int sock);
 

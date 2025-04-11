@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "User.hpp"
 
+// Default constructor
 User::User() : username(""), password(""), socketNo(-1) {}
 
 User::User(const std::string& uname, const std::string& pwd, int sock)

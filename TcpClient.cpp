@@ -1,9 +1,10 @@
 // TcpClient.cpp
 #include "TcpClient.hpp"
 #include <iostream>
-#include <cstring>
 #include <unistd.h>
+#include <cstring>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 
 TcpClient::TcpClient() : sockfd(-1) {}
 

@@ -33,7 +33,7 @@ void handleClient(int clientSocket) {
         std::string command;
         iss >> command;
 
-        if (command == "REGISTER") {
+        if (command == "Rigester") {
             std::string uname, pwd;
             iss >> uname >> pwd;
 
@@ -62,7 +62,7 @@ void handleClient(int clientSocket) {
             }
         }
 
-        else if (command == "LOGIN") {
+        else if (command == "Login") {
             std::string uname, pwd;
             iss >> uname >> pwd;
 
@@ -89,7 +89,7 @@ void handleClient(int clientSocket) {
             }
         }
 
-        else if (command == "LOGOUT") {
+        else if (command == "Exit") {
             std::lock_guard<std::mutex> lock(userMutex);
             onlineUsers.erase(username);
             break;

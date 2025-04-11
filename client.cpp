@@ -88,7 +88,7 @@ void subscribe_to_location(){
         std::cout << response << std::endl;
 
         if(response.find("SUCCESS") != std::string::npos){
-            std::cout << "Successfully subscribed to " << location << "!" << std::endl;
+            std::cout << "Successfully subscribed to " << location << "!\n" << std::endl;
         } 
         else{
             std::cout << "Subscription failed. Please try again." << std::endl;
@@ -110,22 +110,18 @@ void unsubscribe_from_location(){
     std::getline(std::cin >> std::ws, location);
 
     if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
-        std::string request = "Unsubscribe " + current_user + " " + location;
+        std::string request = "Unsubscribe " + location;
         client.sendData(request);
         std::string response = client.receiveData();
         std::cout << response << std::endl;
 
         if(response.find("SUCCESS") != std::string::npos){
             std::cout << "Successfully unsubscribed from " << location << "!" << std::endl;
-        } 
-        else{
-            std::cout << "Location not recognized. Please enter a valid location subscription to unsubscribe." << std::endl;
         }
     } 
     else{
         std::cout << "\nInvalid location. Please choose from the following: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre." << std::endl;
     }
-    std::cout << "Unsubscribed from " << location << std::endl;
     std::cout << "___________________________________" << std::endl;
 }
 

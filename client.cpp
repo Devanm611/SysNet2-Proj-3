@@ -3,7 +3,7 @@
 #include <string>
 #include "TcpClient.hpp"
 
-bool logged_in = false;
+bool logged_in = false; //Flag to check if the user is logged in
 TcpClient client;
 std::string current_user;
 
@@ -19,7 +19,7 @@ void create_account(){
 
     std::string request = "Register " + new_username + " " + new_password;
     client.sendData(request);
-    std::string response = client.receiveData();
+    std::string response = client.receiveData(); //Wait for server response
     std::cout << response << std::endl;
 }
 

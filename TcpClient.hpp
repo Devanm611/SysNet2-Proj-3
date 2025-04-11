@@ -5,19 +5,17 @@
 
 class TcpClient {
 private:
-    std::string serverIP;  // declared in correct order
-    int serverPort;
     int sockfd;
+    std::string serverIp;
+    int serverPort;
 
 public:
-    TcpClient(const std::string& ip, int port);
+    TcpClient();
     ~TcpClient();
 
-    bool connectToServer();
+    bool connectToServer(const std::string& ip, int port);
     bool sendData(const std::string& data);
     std::string receiveData();
-    void closeConnection();
-
     int getSocket() const;
 };
 

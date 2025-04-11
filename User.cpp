@@ -1,12 +1,12 @@
-#include "User.hpp"
+//User.cpp
 #include <algorithm>
+#include "User.hpp"
 
 // Default constructor
 User::User() : username(""), password(""), socketNo(-1) {}
 
-// Parameterized constructor
-User::User(const std::string& uname, const std::string& pass, int sock)
-    : username(uname), password(pass), socketNo(sock) {}
+User::User(const std::string& uname, const std::string& pwd, int sock)
+    : username(uname), password(pwd), socketNo(sock) {}
 
 std::string User::getUsername() const {
     return username;
@@ -20,35 +20,41 @@ int User::getSocketNo() const {
     return socketNo;
 }
 
-void User::setPassword(const std::string& newPass) {
-    password = newPass;
+std::vector<std::string> User::getSubscribedLocations() const {
+    return subscribedLocations;
+}
+
+std::vector<std::string> User::getLast10Messages() const {
+    if (receivedMessages.size() <= 10)
+        return receivedMessages;
+    return std::vector<std::string>(receivedMessages.end() - 10, receivedMessages.end());
+}
+
+void User::setPassword(const std::string& newPassword) {
+    password = newPassword;
 }
 
 void User::setSocketNo(int sock) {
     socketNo = sock;
 }
 
-void User::subscribeLocation(const std::string& loc) {
-    if (std::find(locations.begin(), locations.end(), loc) == locations.end()) {
-        locations.push_back(loc);
+void User::subscribeToLocation(const std::string& location) {
+    if (!isSubscribedTo(location)) {
+        subscribedLocations.push_back(location);
     }
 }
 
-void User::unsubscribeLocation(const std::string& loc) {
-    locations.erase(std::remove(locations.begin(), locations.end(), loc), locations.end());
+void User::unsubscribeFromLocation(const std::string& location) {
+    subscribedLocations.erase(
+        std::remove(subscribedLocations.begin(), subscribedLocations.end(), location),
+        subscribedLocations.end()
+    );
 }
 
-std::vector<std::string> User::getLocations() const {
-    return locations;
+bool User::isSubscribedTo(const std::string& location) const {
+    return std::find(subscribedLocations.begin(), subscribedLocations.end(), location) != subscribedLocations.end();
 }
 
-void User::addMessage(const std::string& msg) {
-    messages.push_back(msg);
-    if (messages.size() > 10) {
-        messages.erase(messages.begin()); // keep only last 10 messages
-    }
-}
-
-std::vector<std::string> User::getMessages() const {
-    return messages;
+void User::addMessage(const std::string& message) {
+    receivedMessages.push_back(message);
 }

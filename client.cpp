@@ -24,7 +24,7 @@ void create_account() {
 }
 
 void login() {
-    while (!logged_in) {
+    while(!logged_in){
         std::string password;
         std::cout << "Username: ";
         std::cin >> current_user;
@@ -36,12 +36,15 @@ void login() {
         std::string response = client.receiveData();
         std::cout << response << std::endl;
 
-        if (response.find("SUCCESS") != std::string::npos) {
+        if(response.find("SUCCESS") != std::string::npos){
             std::cout << "Successful Login! Welcome, " << current_user << "!" << std::endl;
             std::cout << "___________________________________" << std::endl;
             logged_in = true;
-        } else {
+        } 
+        else{
             std::cout << "Login failed. Invalid user ID or password." << std::endl;
+            std::cout << "Please try again or Register your details.\n" << std::endl;
+            return;
         }
     }
 }
@@ -61,10 +64,72 @@ void change_password() {
     std::string response = client.receiveData();
     std::cout << response << std::endl;
 
-    if (response.find("SUCCESS") != std::string::npos) {
+    if(response.find("SUCCESS") != std::string::npos){
+        std::cout << "Password changed successfully!" << std::endl;
         logged_in = false;
         std::cout << "Please login again to continue." << std::endl;
     }
+}
+
+void subscribe_to_location(){
+    std::cout << "Subscribing to a location..." << std::endl;
+    std::cout << "___________________________________" << std::endl;
+    std::cout << "Available locations: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre." << std::endl;
+    std::cout << "Enter the location you want to subscribe to: ";
+    
+    std::string location;
+    std::cin >> location;
+
+    if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+        std::string request = "Subscribe " + location;
+        client.sendData(request);
+        
+        std::string response = client.receiveData();
+        std::cout << response << std::endl;
+
+        if(response.find("SUCCESS") != std::string::npos){
+            std::cout << "Successfully subscribed to " << location << "!" << std::endl;
+        } 
+        else{
+            std::cout << "Subscription failed. Please try again." << std::endl;
+        }
+    } 
+    else{
+        std::cout << "\nInvalid location. Please choose from the following: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre.\n" << std::endl;
+        return;
+    }
+
+}
+
+void unsubscribe_from_location(){
+    std::cout << "Unsubscribing from a location..." << std::endl;
+    std::cout << "___________________________________" << std::endl;
+    std::string location;
+    std::cout << "Enter the location you want to unsubscribe from: ";
+    std::cin >> location;
+
+    if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+        std::string request = "Unsubscribe " + current_user + " " + location;
+        client.sendData(request);
+        std::string response = client.receiveData();
+        std::cout << response << std::endl;
+
+        if(response.find("SUCCESS") != std::string::npos){
+            std::cout << "Successfully unsubscribed from " << location << "!" << std::endl;
+        } 
+        else{
+            std::cout << "Location not recognized. Please enter a valid location subscription to unsubscribe." << std::endl;
+        }
+    } 
+    else{
+        std::cout << "\nInvalid location. Please choose from the following: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre." << std::endl;
+    }
+    std::cout << "Unsubscribed from " << location << std::endl;
+    std::cout << "___________________________________" << std::endl;
+}
+
+void display_subscriptions() {
+    std::cout << "Displaying subscriptions... [TODO]" << std::endl;
 }
 
 int main() {
@@ -104,19 +169,19 @@ int main() {
 
                     switch (sub_choice) {
                         case 1:
-                            std::cout << "Subscribing to a location... [TODO]" << std::endl;
+                            subscribe_to_location();
                             break;
                         case 2:
-                            std::cout << "Unsubscribing from a location... [TODO]" << std::endl;
+                            unsubscribe_from_location();
                             break;
                         case 3:
                             change_password();
                             break;
                         case 4:
-                            std::cout << "Displaying subscriptions... [TODO]" << std::endl;
+                            display_subscriptions();
                             break;
                         case 5:
-                            std::cout << "Logging out..." << std::endl;
+                            std::cout << "Logging out...\n" << std::endl;
                             logged_in = false;
                             break;
                         default:

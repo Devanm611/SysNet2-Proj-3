@@ -101,6 +101,37 @@ void handleClient(int clientSocket) {
             std::cout << "[<] Sent to client: " << msg;
         }
 
+        else if(command == "Subscribe"){
+            std::string location;
+            iss >> location;
+            std::cout << "[*] Handling subscription for user: " << username << " to valid location: " << location << std::endl;
+            
+            std::lock_guard<std::mutex> lock(userMutex);
+            bool success = false;
+
+            //Check if the location is valid
+            if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+                success = true;
+                onlineUsers[username].subscribeToLocation(location);
+            }
+
+            std::string msg;
+            if(success){
+                msg = "SUCCESS: Subscribed to " + location + "\n";
+                std::cout << "[+] Subscription successful for user: " << username << " to location: " << location << std::endl;
+            } 
+            else{
+                msg = "ERROR: Invalid location\n";
+                std::cout << "[-] Subscription failed for user: " << username << " to location: " << location << std::endl;
+            }
+
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+            std::cout << "[<] Sent to client: " << msg;
+        }
+        //else if(command == "Unsubscribe"){
+            //std::lock_guard<std::mutex> lock(userMutex);
+        //}
+
         else if (command == "Exit") {
             std::lock_guard<std::mutex> lock(userMutex);
             onlineUsers.erase(username);

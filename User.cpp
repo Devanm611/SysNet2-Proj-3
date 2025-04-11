@@ -42,6 +42,7 @@ void User::subscribeToLocation(const std::string& location) {
     if (!isSubscribedTo(location)) {
         subscribedLocations.push_back(location);
     }
+    
 }
 
 void User::unsubscribeFromLocation(const std::string& location) {

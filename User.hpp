@@ -3,38 +3,37 @@
 
 #include <string>
 #include <vector>
-using namespace std;
 
 class User {
 private:
-    string username;
-    string password;
+    std::string username;
+    std::string password;
     int socketNo;
-    vector<string> subscribedLocations;
-    vector<string> receivedMessages;
+    std::vector<std::string> subscribedLocations;
+    std::vector<std::string> receivedMessages;
 
 public:
     User();
-    User(const string& uname, const string& pwd, int sock);
+    User(const std::string& uname, const std::string& pwd, int sock);
 
     // Getters
-    string getUsername() const;
-    string getPassword() const;
+    std::string getUsername() const;
+    std::string getPassword() const;
     int getSocketNo() const;
-    vector<string> getSubscribedLocations() const;
-    vector<string> getLast10Messages() const;
+    std::vector<std::string> getSubscribedLocations() const;
+    std::vector<std::string> getLast10Messages() const;
 
     // Setters
-    void setPassword(const string& newPassword);
+    void setPassword(const std::string& newPassword);
     void setSocketNo(int sock);
 
     // Location methods
-    void subscribeToLocation(const string& location);
-    void unsubscribeFromLocation(const string& location);
-    bool isSubscribedTo(const string& location) const;
+    void subscribeToLocation(const std::string& location);
+    void unsubscribeFromLocation(const std::string& location);
+    bool isSubscribedTo(const std::string& location) const;
 
     // Message methods
-    void addMessage(const string& message);
+    void addMessage(const std::string& message);
 };
 
 #endif

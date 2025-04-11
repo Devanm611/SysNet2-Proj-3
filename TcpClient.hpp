@@ -2,23 +2,21 @@
 #define TCPCLIENT_HPP
 
 #include <string>
-using namespace std;
 
-class TcpClient {// TCP client class
-
+class TcpClient {
 private:
-    int sockfd; // socket file descriptor
+    int sockfd;
+    std::string serverIp;
+    int serverPort;
 
 public:
     TcpClient();
     ~TcpClient();
 
-    bool connectToServer(const string& ip, int port);// connects to the server
-    bool sendData(const string& data); // sends data to the server
-    string receiveData(); // receives data from the server
-    int getSocket() const; // returns the socket file descriptor
-
+    bool connectToServer(const std::string& ip, int port);
+    bool sendData(const std::string& data);
+    std::string receiveData();
+    int getSocket() const;
 };
-
 
 #endif

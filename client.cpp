@@ -151,8 +151,13 @@ int main(){
         std::cout << "\t2. Register" << std::endl;
         std::cout << "\t3. Exit" << std::endl;
 
-        std::cin >> choice;
-        std::cout << std::endl;
+        std::cout << "Enter choice here: ";
+        if (!(std::cin >> choice)) {
+            std::cin.clear(); // clear the error flag
+            std::cin.ignore(10000, '\n'); // discard invalid input
+            std::cout << "Invalid input. Please enter a number.\n\n";
+            continue; // re-display the menu
+        }
 
         switch(choice){
             case 1:
@@ -167,8 +172,13 @@ int main(){
                     std::cout << "\t5. Exit" << std::endl;
 
                     int sub_choice;
-                    std::cin >> sub_choice;
-                    std::cout << std::endl;
+                    std::cout << "Enter choice here: ";
+                    if (!(std::cin >> sub_choice)) {
+                        std::cin.clear(); // clear the error flag
+                        std::cin.ignore(10000, '\n'); // discard invalid input
+                        std::cout << "Invalid input. Please enter a number.\n\n";
+                        continue; // re-display the menu
+                    }
 
                     switch (sub_choice) {
                         case 1:

@@ -228,7 +228,7 @@ int main() {
     bind(server_fd, (struct sockaddr*)&address, sizeof(address));
     listen(server_fd, 10);
 
-    std::cout << "[✓] Server running on port 8080..." << std::endl;
+    std::cout << "[✓] Server running on port 60500..." << std::endl;
 
     while(true){
         new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);

@@ -3,11 +3,11 @@
 #include <string>
 #include "TcpClient.hpp"
 
-bool logged_in = false;
+bool logged_in = false; //Flag to check if the user is logged in
 TcpClient client;
 std::string current_user;
 
-void create_account() {
+void create_account(){
     std::string new_username, new_password;
 
     std::cout << "Creating a new account..." << std::endl;
@@ -19,12 +19,12 @@ void create_account() {
 
     std::string request = "Register " + new_username + " " + new_password;
     client.sendData(request);
-    std::string response = client.receiveData();
+    std::string response = client.receiveData(); //Wait for server response
     std::cout << response << std::endl;
 }
 
-void login() {
-    while (!logged_in) {
+void login(){
+    while(!logged_in){
         std::string password;
         std::cout << "Username: ";
         std::cin >> current_user;
@@ -36,17 +36,20 @@ void login() {
         std::string response = client.receiveData();
         std::cout << response << std::endl;
 
-        if (response.find("SUCCESS") != std::string::npos) {
+        if(response.find("SUCCESS") != std::string::npos){
             std::cout << "Successful Login! Welcome, " << current_user << "!" << std::endl;
             std::cout << "___________________________________" << std::endl;
             logged_in = true;
-        } else {
+        } 
+        else{
             std::cout << "Login failed. Invalid user ID or password." << std::endl;
+            std::cout << "Please try again or Register your details.\n" << std::endl;
+            return;
         }
     }
 }
 
-void change_password() {
+void change_password(){
     std::string oldpass, newpass;
 
     std::cout << "Changing your password..." << std::endl;
@@ -61,14 +64,79 @@ void change_password() {
     std::string response = client.receiveData();
     std::cout << response << std::endl;
 
-    if (response.find("SUCCESS") != std::string::npos) {
+    if(response.find("SUCCESS") != std::string::npos){
+        std::cout << "Password changed successfully!" << std::endl;
         logged_in = false;
         std::cout << "Please login again to continue." << std::endl;
     }
 }
 
-int main() {
-    if (!client.connectToServer("127.0.0.1", 8080)) {
+void subscribe_to_location(){
+    std::cout << "Subscribing to a location..." << std::endl;
+    std::cout << "___________________________________" << std::endl;
+    std::cout << "Available locations: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre." << std::endl;
+    std::cout << "Enter the location you want to subscribe to: ";
+    
+    std::string location;
+    std::getline(std::cin >> std::ws, location);
+
+    if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+        std::string request = "Subscribe " + location;
+        client.sendData(request);
+        
+        std::string response = client.receiveData();
+        std::cout << response << std::endl;
+
+        if(response.find("SUCCESS") != std::string::npos){
+            std::cout << "Successfully subscribed to " << location << "!\n" << std::endl;
+        } 
+        else{
+            std::cout << "Subscription failed. Please try again." << std::endl;
+        }
+    } 
+    else{
+        std::cout << "\nInvalid location. Please choose from the following: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre.\n" << std::endl;
+        return;
+    }
+
+}
+
+void unsubscribe_from_location(){
+    std::cout << "Unsubscribing from a location..." << std::endl;
+    std::cout << "___________________________________" << std::endl;
+    std::cout << "Enter the location you want to unsubscribe from: ";
+    
+    std::string location;
+    std::getline(std::cin >> std::ws, location);
+
+    if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+        std::string request = "Unsubscribe " + location;
+        client.sendData(request);
+        std::string response = client.receiveData();
+        std::cout << response << std::endl;
+
+        if(response.find("SUCCESS") != std::string::npos){
+            std::cout << "Successfully unsubscribed from " << location << "!" << std::endl;
+        }
+    } 
+    else{
+        std::cout << "\nInvalid location. Please choose from the following: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre." << std::endl;
+    }
+    std::cout << "___________________________________" << std::endl;
+}
+
+void display_subscriptions(){
+    std::cout << "Displaying subscriptions..." << std::endl;
+    std::cout << "___________________________________" << std::endl;
+    std::string request = "Subscriptions ";
+    client.sendData(request);
+
+    std::string response = client.receiveData();
+    std::cout << response << std::endl;
+}
+
+int main(){
+    if(!client.connectToServer("127.0.0.1", 8080)){
         std::cerr << "Unable to connect to server." << std::endl;
         return 1;
     }
@@ -76,7 +144,7 @@ int main() {
     int choice;
     bool running = true;
 
-    while (running) {
+    while(running){
         std::cout << "Welcome to your local weather station!\n";
         std::cout << "Please choose an option:\n";
         std::cout << "\t1. Login" << std::endl;
@@ -86,7 +154,7 @@ int main() {
         std::cin >> choice;
         std::cout << std::endl;
 
-        switch (choice) {
+        switch(choice){
             case 1:
                 std::cout << "--Login--" << std::endl;
                 login();
@@ -104,19 +172,19 @@ int main() {
 
                     switch (sub_choice) {
                         case 1:
-                            std::cout << "Subscribing to a location... [TODO]" << std::endl;
+                            subscribe_to_location();
                             break;
                         case 2:
-                            std::cout << "Unsubscribing from a location... [TODO]" << std::endl;
+                            unsubscribe_from_location();
                             break;
                         case 3:
                             change_password();
                             break;
                         case 4:
-                            std::cout << "Displaying subscriptions... [TODO]" << std::endl;
+                            display_subscriptions();
                             break;
                         case 5:
-                            std::cout << "Logging out..." << std::endl;
+                            std::cout << "Logging out...\n" << std::endl;
                             logged_in = false;
                             break;
                         default:
@@ -143,6 +211,6 @@ int main() {
         }
     }
 
-    std::cout << "Goodbye!\n";
+    std::cout << "See you later!\n";
     return 0;
 }

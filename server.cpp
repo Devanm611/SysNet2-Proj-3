@@ -16,16 +16,17 @@
 std::map<std::string, User> onlineUsers;
 std::mutex userMutex;
 
-void handleClient(int clientSocket) {
+void handleClient(int clientSocket){
     std::cout << "[+] New client connected: socket " << clientSocket << std::endl;
 
     char buffer[1024];
     std::string username;
 
-    while (true) {
+    while(true){
         std::memset(buffer, 0, sizeof(buffer));
         ssize_t bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
-        if (bytesReceived <= 0) {
+
+        if(bytesReceived <= 0){
             std::cerr << "[-] Client disconnected or error occurred on socket " << clientSocket << std::endl;
             break;
         }
@@ -37,7 +38,7 @@ void handleClient(int clientSocket) {
 
         std::cout << "[>] Received from client " << clientSocket << ": " << input << std::endl;
 
-        if (command == "Register") {
+        if(command == "Register"){
             std::string uname, pwd;
             iss >> uname >> pwd;
             std::cout << "[*] Handling registration for user: " << uname << std::endl;
@@ -45,7 +46,7 @@ void handleClient(int clientSocket) {
             std::lock_guard<std::mutex> lock(userMutex);
             std::ifstream infile("users.txt");
             std::string line, u, p;
-            bool exists = false;
+            bool exists = false;    //Checks if the username already exists
             while (std::getline(infile, line)) {
                 std::istringstream lss(line);
                 lss >> u >> p;
@@ -57,26 +58,28 @@ void handleClient(int clientSocket) {
             infile.close();
 
             std::string msg;
-            if (exists) {
+            if(exists){
                 msg = "ERROR: Username already exists\n";
                 std::cout << "[-] Registration failed: " << uname << " already exists\n";
-            } else {
-                std::ofstream outfile("users.txt", std::ios::app);
+            } 
+            else{
+                std::ofstream outfile("users.txt", std::ios::app); //Opens users.txt to append the new user
                 outfile << uname << " " << pwd << std::endl;
                 msg = "SUCCESS: Account created\n";
                 std::cout << "[+] Registration successful for user: " << uname << std::endl;
             }
+
             send(clientSocket, msg.c_str(), msg.size(), 0);
             std::cout << "[<] Sent to client: " << msg;
         }
 
-        else if (command == "Login") {
+        else if(command == "Login"){
             std::string uname, pwd;
             iss >> uname >> pwd;
             std::cout << "[*] Attempting login for user: " << uname << std::endl;
 
             std::lock_guard<std::mutex> lock(userMutex);
-            std::ifstream infile("users.txt");
+            std::ifstream infile("users.txt"); //Opens users.txt to verify the credentials
             std::string u, p;
             bool success = false;
             while (infile >> u >> p) {
@@ -88,20 +91,102 @@ void handleClient(int clientSocket) {
             infile.close();
 
             std::string msg;
-            if (success) {
+            if(success){
                 username = uname;
                 onlineUsers[username] = User(uname, pwd, clientSocket);
-                msg = "SUCCESS: Logged in\n";
+                msg = "SUCCESS\n";
                 std::cout << "[+] Login successful for user: " << uname << std::endl;
-            } else {
-                msg = "ERROR: Invalid credentials\n";
+            } 
+            else{
+                msg = "ERROR\n";
                 std::cout << "[-] Login failed for user: " << uname << std::endl;
             }
             send(clientSocket, msg.c_str(), msg.size(), 0);
             std::cout << "[<] Sent to client: " << msg;
         }
 
-        else if (command == "Exit") {
+        else if(command == "Subscribe"){
+            std::string location;
+            std::getline(iss >> std::ws, location); //Reads the entire line for the location
+            
+            std::cout << "[*] Handling subscription for user: " << username << " to valid location: " << location << std::endl;
+            
+            std::lock_guard<std::mutex> lock(userMutex);
+            bool success = false;
+
+            //Checks if the location is valid
+            if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+                success = true;
+                onlineUsers[username].subscribeToLocation(location); //Subscribes the user to the location
+            }
+
+            std::string msg;
+            if(success){
+                msg = "SUCCESS\n";
+                std::cout << "[+] Subscription successful for user: " << username << " to location: " << location << std::endl;
+            } 
+            else{
+                msg = "ERROR\n";
+                std::cout << "[-] Subscription failed for user: " << username << " to location: " << location << std::endl;
+            }
+
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+            std::cout << "[<] Sent to client: " << msg;
+        }
+
+        else if(command == "Unsubscribe"){
+            std::string location;
+            std::getline(iss >> std::ws, location);
+            
+            std::cout << "[*] Handling unsubscription for user: " << username << " to valid location: " << location << std::endl;
+
+            std::lock_guard<std::mutex> lock(userMutex);
+            bool success = false;
+
+            if(onlineUsers[username].isSubscribedTo(location)){
+                onlineUsers[username].unsubscribeFromLocation(location); //Removes the location from the user's subscriptions
+                success = true;
+            }
+            else{
+                success = false;
+                std::cout<< "[-] User " << username << " is not subscribed to location: " << location << std::endl;
+            }
+
+            std::string msg;
+            if(success){
+                msg = "SUCCESS\n";
+                std::cout << "[+] Unsubscription successful for user: " << username << " to location: " << location << std::endl;
+            } 
+            else{
+                msg = "ERROR\n";
+                std::cout << "[-] Unsubscription failed for user: " << username << " to location: " << location << std::endl;
+            }
+
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+            std::cout << "[<] Sent to client: " << msg;
+        }
+
+        else if(command == "Subscriptions"){
+
+            std::lock_guard<std::mutex> lock(userMutex);
+            std::vector<std::string> subscriptions = onlineUsers[username].getSubscribedLocations();
+            std::string msg;
+
+            if(subscriptions.empty()){
+                msg = "No subscriptions found.\n";
+            } 
+            else{
+                msg = "Your current subscriptions are:\n";
+                for(const auto& loc : subscriptions){
+                    msg += loc + "\n";
+                }
+            }
+
+            send(clientSocket, msg.c_str(), msg.size(), 0);
+            std::cout << "[<] Sent to client: " << msg;
+        }
+
+        else if(command == "Exit"){
             std::lock_guard<std::mutex> lock(userMutex);
             onlineUsers.erase(username);
             std::cout << "[-] User " << username << " disconnected and removed from online list.\n";
@@ -131,7 +216,7 @@ int main() {
 
     std::cout << "[✓] Server running on port 8080..." << std::endl;
 
-    while (true) {
+    while(true){
         new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);
         std::cout << "[*] Accepted new connection on socket " << new_socket << std::endl;
         std::thread t(handleClient, new_socket);

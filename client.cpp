@@ -136,7 +136,7 @@ void display_subscriptions(){
 }
 
 int main(){
-    if(!client.connectToServer("127.0.0.1", 8080)){
+    if(!client.connectToServer("127.0.0.1", 60500)){
         std::cerr << "Unable to connect to server." << std::endl;
         return 1;
     }

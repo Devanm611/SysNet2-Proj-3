@@ -4,6 +4,7 @@
 #include "TcpClient.hpp"
 
 bool logged_in = false; //Flag to check if the user is logged in
+void display_subscriptions(); //Forward declaration of the function to display subscriptions
 TcpClient client;
 std::string current_user;
 
@@ -102,6 +103,7 @@ void subscribe_to_location(){
 }
 
 void unsubscribe_from_location(){
+    display_subscriptions(); // Display available locations before unsubscribing
     std::cout << "Unsubscribing from a location..." << std::endl;
     std::cout << "___________________________________" << std::endl;
     std::cout << "Enter the location you want to unsubscribe from: ";

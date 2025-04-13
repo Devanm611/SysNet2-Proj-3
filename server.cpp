@@ -1,4 +1,4 @@
-//Server.cpp
+// server_verbose.cpp
 #include <iostream>
 #include <fstream>
 #include <cstring>
@@ -6,11 +6,9 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <thread>
-#include <fstream>
 #include <mutex>
 #include <map>
 #include <sstream>
-
 #include "User.hpp"
 
 std::map<std::string, User> onlineUsers;
@@ -18,7 +16,6 @@ std::mutex userMutex;
 
 void handleClient(int clientSocket){
     std::cout << "[+] New client connected: socket " << clientSocket << std::endl;
-
     char buffer[1024];
     std::string username;
 
@@ -36,17 +33,17 @@ void handleClient(int clientSocket){
         std::string command;
         iss >> command;
 
-        std::cout << "[>] Received from client " << clientSocket << ": " << input << std::endl;
+        std::cout << "[>] Received from client (" << clientSocket << "): " << input << std::endl;
 
         if(command == "Register"){
             std::string uname, pwd;
             iss >> uname >> pwd;
-            std::cout << "[*] Handling registration for user: " << uname << std::endl;
 
+            std::cout << "[*] Handling REGISTER for user: " << uname << std::endl;
             std::lock_guard<std::mutex> lock(userMutex);
             std::ifstream infile("users.txt");
             std::string line, u, p;
-            bool exists = false;    //Checks if the username already exists
+            bool exists = false;
             while (std::getline(infile, line)) {
                 std::istringstream lss(line);
                 lss >> u >> p;
@@ -60,26 +57,25 @@ void handleClient(int clientSocket){
             std::string msg;
             if(exists){
                 msg = "ERROR: Username already exists\n";
-                std::cout << "[-] Registration failed: " << uname << " already exists\n";
-            } 
-            else{
-                std::ofstream outfile("users.txt", std::ios::app); //Opens users.txt to append the new user
+                std::cout << "[-] Registration failed: Username exists\n";
+            } else {
+                std::ofstream outfile("users.txt", std::ios::app);
                 outfile << uname << " " << pwd << std::endl;
                 msg = "SUCCESS: Account created\n";
-                std::cout << "[+] Registration successful for user: " << uname << std::endl;
+                std::cout << "[+] Registration successful\n";
             }
 
+            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
             send(clientSocket, msg.c_str(), msg.size(), 0);
-            std::cout << "[<] Sent to client: " << msg;
         }
 
         else if(command == "Login"){
             std::string uname, pwd;
             iss >> uname >> pwd;
-            std::cout << "[*] Attempting login for user: " << uname << std::endl;
 
+            std::cout << "[*] Handling LOGIN for user: " << uname << std::endl;
             std::lock_guard<std::mutex> lock(userMutex);
-            std::ifstream infile("users.txt"); //Opens users.txt to verify the credentials
+            std::ifstream infile("users.txt");
             std::string u, p;
             bool success = false;
             while (infile >> u >> p) {
@@ -95,101 +91,119 @@ void handleClient(int clientSocket){
                 username = uname;
                 onlineUsers[username] = User(uname, pwd, clientSocket);
                 msg = "SUCCESS\n";
-                std::cout << "[+] Login successful for user: " << uname << std::endl;
-            } 
-            else{
+                std::cout << "[+] Login SUCCESS for user: " << uname << std::endl;
+            } else {
                 msg = "ERROR\n";
-                std::cout << "[-] Login failed for user: " << uname << std::endl;
+                std::cout << "[-] Login FAILED for user: " << uname << std::endl;
             }
+
+            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
             send(clientSocket, msg.c_str(), msg.size(), 0);
-            std::cout << "[<] Sent to client: " << msg;
+        }
+
+        else if(command == "ChangePassword") {
+            std::string uname, oldpass, newpass;
+            iss >> uname >> oldpass >> newpass;
+
+            std::cout << "[*] Handling PASSWORD CHANGE for user: " << uname << std::endl;
+            std::lock_guard<std::mutex> lock(userMutex);
+            std::ifstream infile("users.txt");
+            std::vector<std::pair<std::string, std::string>> users;
+            std::string u, p;
+            bool updated = false;
+
+            while (infile >> u >> p) {
+                if (u == uname && p == oldpass) {
+                    users.emplace_back(u, newpass);
+                    updated = true;
+                } else {
+                    users.emplace_back(u, p);
+                }
+            }
+            infile.close();
+
+            std::ofstream outfile("users.txt", std::ios::trunc);
+            for (const auto& user : users) {
+                outfile << user.first << " " << user.second << "\n";
+            }
+
+            std::string msg;
+            if (updated) {
+                if (onlineUsers.find(uname) != onlineUsers.end()) {
+                    onlineUsers[uname].setPassword(newpass);
+                }
+                msg = "SUCCESS: Password updated\n";
+                std::cout << "[+] Password changed successfully\n";
+            } else {
+                msg = "ERROR: Invalid credentials\n";
+                std::cout << "[-] Password change failed\n";
+            }
+
+            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
+            send(clientSocket, msg.c_str(), msg.size(), 0);
         }
 
         else if(command == "Subscribe"){
             std::string location;
-            std::getline(iss >> std::ws, location); //Reads the entire line for the location
-            
-            std::cout << "[*] Handling subscription for user: " << username << " to valid location: " << location << std::endl;
-            
+            std::getline(iss >> std::ws, location);
+
+            std::cout << "[*] Handling SUBSCRIBE for " << username << " to " << location << std::endl;
             std::lock_guard<std::mutex> lock(userMutex);
             bool success = false;
 
-            //Checks if the location is valid
             if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
                 success = true;
-                onlineUsers[username].subscribeToLocation(location); //Subscribes the user to the location
+                onlineUsers[username].subscribeToLocation(location);
             }
 
-            std::string msg;
-            if(success){
-                msg = "SUCCESS\n";
-                std::cout << "[+] Subscription successful for user: " << username << " to location: " << location << std::endl;
-            } 
-            else{
-                msg = "ERROR\n";
-                std::cout << "[-] Subscription failed for user: " << username << " to location: " << location << std::endl;
-            }
-
+            std::string msg = success ? "SUCCESS\n" : "ERROR\n";
+            std::cout << (success ? "[+] Subscribed successfully\n" : "[-] Invalid location or already subscribed\n");
+            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
             send(clientSocket, msg.c_str(), msg.size(), 0);
-            std::cout << "[<] Sent to client: " << msg;
         }
 
         else if(command == "Unsubscribe"){
             std::string location;
             std::getline(iss >> std::ws, location);
-            
-            std::cout << "[*] Handling unsubscription for user: " << username << " to valid location: " << location << std::endl;
 
+            std::cout << "[*] Handling UNSUBSCRIBE for " << username << " from " << location << std::endl;
             std::lock_guard<std::mutex> lock(userMutex);
             bool success = false;
 
             if(onlineUsers[username].isSubscribedTo(location)){
-                onlineUsers[username].unsubscribeFromLocation(location); //Removes the location from the user's subscriptions
+                onlineUsers[username].unsubscribeFromLocation(location);
                 success = true;
             }
-            else{
-                success = false;
-                std::cout<< "[-] User " << username << " is not subscribed to location: " << location << std::endl;
-            }
 
-            std::string msg;
-            if(success){
-                msg = "SUCCESS\n";
-                std::cout << "[+] Unsubscription successful for user: " << username << " to location: " << location << std::endl;
-            } 
-            else{
-                msg = "ERROR\n";
-                std::cout << "[-] Unsubscription failed for user: " << username << " to location: " << location << std::endl;
-            }
-
+            std::string msg = success ? "SUCCESS\n" : "ERROR\n";
+            std::cout << (success ? "[+] Unsubscribed successfully\n" : "[-] User not subscribed to that location\n");
+            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
             send(clientSocket, msg.c_str(), msg.size(), 0);
-            std::cout << "[<] Sent to client: " << msg;
         }
 
         else if(command == "Subscriptions"){
-
             std::lock_guard<std::mutex> lock(userMutex);
-            std::vector<std::string> subscriptions = onlineUsers[username].getSubscribedLocations();
+            std::vector<std::string> subs = onlineUsers[username].getSubscribedLocations();
             std::string msg;
 
-            if(subscriptions.empty()){
+            std::cout << "[*] Fetching subscriptions for user: " << username << std::endl;
+            if(subs.empty()){
                 msg = "No subscriptions found.\n";
-            } 
-            else{
+            } else {
                 msg = "Your current subscriptions are:\n";
-                for(const auto& loc : subscriptions){
+                for(const auto& loc : subs){
                     msg += loc + "\n";
                 }
             }
 
+            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
             send(clientSocket, msg.c_str(), msg.size(), 0);
-            std::cout << "[<] Sent to client: " << msg;
         }
 
         else if(command == "Exit"){
             std::lock_guard<std::mutex> lock(userMutex);
             onlineUsers.erase(username);
-            std::cout << "[-] User " << username << " disconnected and removed from online list.\n";
+            std::cout << "[-] User " << username << " logged out and removed from online list.\n";
             break;
         }
     }
@@ -209,12 +223,12 @@ int main() {
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(8080);
+    address.sin_port = htons(60500);
 
     bind(server_fd, (struct sockaddr*)&address, sizeof(address));
     listen(server_fd, 10);
 
-    std::cout << "[✓] Server running on port 8080..." << std::endl;
+    std::cout << "[✓] Server running on port 60500..." << std::endl;
 
     while(true){
         new_socket = accept(server_fd, (struct sockaddr*)&address, (socklen_t*)&addrlen);

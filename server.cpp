@@ -9,9 +9,11 @@
 #include <mutex>
 #include <map>
 #include <sstream>
+#include <set>
 #include "User.hpp"
 
 std::map<std::string, User> onlineUsers;
+std::map<std::string, std::set<std::string>> userLocations; // Map to store user locations
 std::mutex userMutex;
 
 void handleClient(int clientSocket){
@@ -149,17 +151,19 @@ void handleClient(int clientSocket){
 
             std::cout << "[*] Handling SUBSCRIBE for " << username << " to " << location << std::endl;
             std::lock_guard<std::mutex> lock(userMutex);
-            bool success = false;
 
-            if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
-                success = true;
-                onlineUsers[username].subscribeToLocation(location);
+            if (!location.empty()) {
+                userLocations[username].insert(location); // Store location in memory
+                std::string msg = "SUCCESS: Subscribed to " + location + "\n";
+                std::cout << "[+] Subscribed successfully to " << location << std::endl;
+                std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
+                send(clientSocket, msg.c_str(), msg.size(), 0);
+            } else {
+                std::string msg = "ERROR: Invalid location\n";
+                std::cout << "[-] Subscription failed: Invalid location\n";
+                std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
+                send(clientSocket, msg.c_str(), msg.size(), 0);
             }
-
-            std::string msg = success ? "SUCCESS\n" : "ERROR\n";
-            std::cout << (success ? "[+] Subscribed successfully\n" : "[-] Invalid location or already subscribed\n");
-            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
-            send(clientSocket, msg.c_str(), msg.size(), 0);
         }
 
         else if(command == "Unsubscribe"){
@@ -168,22 +172,23 @@ void handleClient(int clientSocket){
 
             std::cout << "[*] Handling UNSUBSCRIBE for " << username << " from " << location << std::endl;
             std::lock_guard<std::mutex> lock(userMutex);
-            bool success = false;
 
-            if(onlineUsers[username].isSubscribedTo(location)){
-                onlineUsers[username].unsubscribeFromLocation(location);
-                success = true;
+            if (userLocations[username].erase(location)) { // Remove location from memory
+                std::string msg = "SUCCESS: Unsubscribed from " + location + "\n";
+                std::cout << "[+] Unsubscribed successfully from " << location << std::endl;
+                std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
+                send(clientSocket, msg.c_str(), msg.size(), 0);
+            } else {
+                std::string msg = "ERROR: Not subscribed to " + location + "\n";
+                std::cout << "[-] Unsubscription failed: Not subscribed to " << location << std::endl;
+                std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
+                send(clientSocket, msg.c_str(), msg.size(), 0);
             }
-
-            std::string msg = success ? "SUCCESS\n" : "ERROR\n";
-            std::cout << (success ? "[+] Unsubscribed successfully\n" : "[-] User not subscribed to that location\n");
-            std::cout << "[<] Sending to client (" << clientSocket << "): " << msg;
-            send(clientSocket, msg.c_str(), msg.size(), 0);
         }
 
         else if(command == "Subscriptions"){
             std::lock_guard<std::mutex> lock(userMutex);
-            std::vector<std::string> subs = onlineUsers[username].getSubscribedLocations();
+            std::set<std::string> subs = userLocations[username];
             std::string msg;
 
             std::cout << "[*] Fetching subscriptions for user: " << username << std::endl;
@@ -203,6 +208,7 @@ void handleClient(int clientSocket){
         else if(command == "Exit"){
             std::lock_guard<std::mutex> lock(userMutex);
             onlineUsers.erase(username);
+            userLocations.erase(username); // Remove user locations from memory
             std::cout << "[-] User " << username << " logged out and removed from online list.\n";
             break;
         }

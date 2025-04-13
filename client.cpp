@@ -7,6 +7,8 @@ bool logged_in = false; //Flag to check if the user is logged in
 TcpClient client;
 std::string current_user;
 
+void display_subscriptions(); // Forward declaration
+
 void create_account(){
     std::string new_username, new_password;
 
@@ -74,13 +76,12 @@ void change_password(){
 void subscribe_to_location(){
     std::cout << "Subscribing to a location..." << std::endl;
     std::cout << "___________________________________" << std::endl;
-    std::cout << "Available locations: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre." << std::endl;
     std::cout << "Enter the location you want to subscribe to: ";
     
     std::string location;
     std::getline(std::cin >> std::ws, location);
 
-    if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+    if (!location.empty()) {
         std::string request = "Subscribe " + location;
         client.sendData(request);
         
@@ -94,14 +95,14 @@ void subscribe_to_location(){
             std::cout << "Subscription failed. Please try again." << std::endl;
         }
     } 
-    else{
-        std::cout << "\nInvalid location. Please choose from the following: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre.\n" << std::endl;
-        return;
+    else {
+        std::cout << "\nInvalid location. Please enter a valid location.\n" << std::endl;
     }
-
 }
 
 void unsubscribe_from_location(){
+    
+    display_subscriptions();
     std::cout << "Unsubscribing from a location..." << std::endl;
     std::cout << "___________________________________" << std::endl;
     std::cout << "Enter the location you want to unsubscribe from: ";
@@ -109,7 +110,7 @@ void unsubscribe_from_location(){
     std::string location;
     std::getline(std::cin >> std::ws, location);
 
-    if(location == "Pensacola" || location == "Destin" || location == "Fort Walton Beach" || location == "Crestview" || location == "Navarre"){
+    if (!location.empty()) {
         std::string request = "Unsubscribe " + location;
         client.sendData(request);
         std::string response = client.receiveData();
@@ -117,10 +118,13 @@ void unsubscribe_from_location(){
 
         if(response.find("SUCCESS") != std::string::npos){
             std::cout << "Successfully unsubscribed from " << location << "!" << std::endl;
+        } 
+        else {
+            std::cout << "Unsubscription failed. Please try again." << std::endl;
         }
     } 
-    else{
-        std::cout << "\nInvalid location. Please choose from the following: \nPensacola, Destin, Fort Walton Beach, Crestview, Navarre." << std::endl;
+    else {
+        std::cout << "\nInvalid location. Please enter a valid location.\n" << std::endl;
     }
     std::cout << "___________________________________" << std::endl;
 }
